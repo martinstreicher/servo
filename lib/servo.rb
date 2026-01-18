@@ -3,7 +3,6 @@
 require 'active_model'
 require 'active_support'
 require 'interactor'
-require 'memo_wise'
 require 'zeitwerk'
 require 'servo/version'
 

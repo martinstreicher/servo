@@ -1,6 +1,6 @@
 # Servo
 
-A Ruby gem for building service objects (interactors) with validations, type checking, memoization, and background job support.
+A Ruby gem for building service objects (interactors) with validations, type checking, and background job support.
 
 Servo builds on the [interactor](https://github.com/collectiveidea/interactor) gem, adding:
 
@@ -9,7 +9,6 @@ Servo builds on the [interactor](https://github.com/collectiveidea/interactor) g
 - **Type Checking** - Validate inputs with Ruby classes, union types, or dry-types
 - **ActiveModel Validations** - Full validation support with error messages
 - **Callbacks** - Before, after, and around callbacks for the perform method
-- **Memoization** - Built-in memoization via MemoWise
 - **Background Jobs** - Run interactors asynchronously with ActiveJob or Sidekiq
 
 ## Installation
@@ -35,6 +34,28 @@ bundle install
 
 ## Quick Start
 
+There are two ways to create an interactor:
+
+### Option 1: Inherit from Servo::Base (Recommended)
+
+```ruby
+class CreateUser < Servo::Base
+  input  :email, type: String
+  input  :name,  type: String
+  output :user
+
+  validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :name,  presence: true
+
+  def perform
+    self.user = User.create!(email: email, name: name)
+    user
+  end
+end
+```
+
+### Option 2: Include Servo::Callable
+
 ```ruby
 class CreateUser
   include Servo::Callable
@@ -51,8 +72,13 @@ class CreateUser
     user
   end
 end
+```
 
-# Call the interactor
+Both approaches are equivalent. Use whichever style you prefer.
+
+### Calling an Interactor
+
+```ruby
 result = CreateUser.call(email: 'alice@example.com', name: 'Alice')
 
 result.success?  # => true
@@ -259,27 +285,6 @@ class AuditedOperation
     start = Time.current
     yield
     audit_log << "Duration: #{Time.current - start}s"
-  end
-end
-```
-
-## Memoization
-
-Servo includes MemoWise for easy memoization:
-
-```ruby
-class ExpensiveCalculation
-  include Servo::Callable
-
-  input :data
-
-  memo_wise def processed_data
-    # This expensive operation only runs once
-    data.map { |item| complex_transform(item) }
-  end
-
-  def perform
-    processed_data.sum
   end
 end
 ```

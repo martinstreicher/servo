@@ -60,7 +60,6 @@ module Servo
       include Callable::ContextRestriction
       extend Callable::Dsl
       prepend Callable::CallOverride
-      prepend MemoWise
 
       define_callbacks :perform
 
