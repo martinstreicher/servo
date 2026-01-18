@@ -5,9 +5,9 @@ module Servo
     ##
     # Restricts context functionality.
     #
-    # When `restrict_context!` is called on a class, this module
-    # intercepts writes to the context and raises an error if
-    # the key is not declared with `input` or `output`.
+    # Context restriction is enabled by default. This module intercepts
+    # writes to the context and raises an error if the key is not
+    # declared with `input` or `output`. Use `unrestrict_context!` to disable.
     ##
     module ContextRestriction
       private

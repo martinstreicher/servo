@@ -49,12 +49,12 @@ module Servo
         define_context_writer(name)
       end
 
-      def restrict_context!
-        self._restrict_context = true
-      end
-
       def restrict_context?
         _restrict_context
+      end
+
+      def unrestrict_context!
+        self._restrict_context = false
       end
 
       private

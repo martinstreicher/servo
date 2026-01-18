@@ -6,12 +6,11 @@ module Servo
     # Overrides Interactor's call method to integrate validation,
     # callbacks, and context restriction.
     #
-    # This module is prepended after Interactor is included so that
-    # our call method takes precedence in the method lookup chain.
+    # This module is prepended after Interactor is included to
+    # force this call method to take precedence in the method lookup chain.
     #
     module CallOverride
       def call
-        @initial_context = context.dup
         apply_context_restrictions! if self.class.restrict_context?
 
         if valid?

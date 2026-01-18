@@ -19,7 +19,7 @@ module Servo
   #   does not run.
   #
   # * Use `input` and `output` DSL methods to declare allowed context variables.
-  #   When `restrict_context!` is called, only declared variables can be set on context.
+  #   Context restriction is enabled by default; use `unrestrict_context!` to disable.
   #
   # * The return value of every invocation is of uniform shape:
   #   - `result.success?` is `true` if the interactor ran without issue
@@ -32,8 +32,6 @@ module Servo
   #
   #   class GreetUser
   #     include Servo::Callable
-  #
-  #     restrict_context!
   #
   #     input  :name, type: String
   #     output :greeting
@@ -68,24 +66,22 @@ module Servo
 
       class_attribute :_allowed_inputs, default: Set.new
       class_attribute :_allowed_outputs, default: Set.new
-      class_attribute :_restrict_context, default: false
+      class_attribute :_restrict_context, default: true
       class_attribute :_type_constraints, default: {}
     end
 
-    def method_missing(method, *, &)
-      context.public_send(method, *, &)
+    class_methods do
+      def call_later(interactor_args: {}, job_args: {})
+        Jobs::AsyncInteractorJob.set(**job_args).perform_later(name, interactor_args)
+      end
     end
 
-    def perform
-      fail NotImplementedError, "Method #perform must be implemented in #{self.class.name}"
-    end
+    def method_missing(method, *, &) = context.public_send(method, *, &)
+
+    def perform = fail NotImplementedError, "Method #perform must be implemented in #{self.class.name}"
 
     def respond_to_missing?(method_name, _include_private = false)
-      super || initial_context.respond_to?(method_name)
+      super || context.respond_to?(method_name)
     end
-
-    private
-
-    attr_reader :initial_context
   end
 end

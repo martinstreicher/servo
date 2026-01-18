@@ -4,7 +4,6 @@ PATH
     servo (0.2.0)
       activemodel
       activesupport
-      dry-types (>= 1.0)
       interactor
       memo_wise
       zeitwerk
@@ -193,6 +192,7 @@ PLATFORMS
 DEPENDENCIES
   activejob
   debug (>= 1.0.0)
+  dry-types (>= 1.0)
   factory_bot
   faker
   rake (~> 13.0)

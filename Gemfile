@@ -7,6 +7,7 @@ gemspec
 group :development, :test do
   gem 'activejob'
   gem 'debug', '>= 1.0.0'
+  gem 'dry-types', '>= 1.0'
   gem 'factory_bot'
   gem 'faker'
   gem 'rake', '~> 13.0'

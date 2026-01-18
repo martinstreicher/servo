@@ -98,12 +98,10 @@ RSpec.describe Servo::Callable do
     end
   end
 
-  describe 'restrict_context!' do
+  describe 'context restriction (default behavior)' do
     before(:all) do
       class RestrictedInteractor
         include Servo::Callable
-
-        restrict_context!
 
         input  :allowed_input
         output :allowed_output
@@ -117,6 +115,8 @@ RSpec.describe Servo::Callable do
       class UnrestrictedInteractor
         include Servo::Callable
 
+        unrestrict_context!
+
         def perform
           context.anything = 'allowed'
           'done'
@@ -125,8 +125,6 @@ RSpec.describe Servo::Callable do
 
       class UndeclaredVarInteractor
         include Servo::Callable
-
-        restrict_context!
 
         input :name
 
@@ -155,7 +153,7 @@ RSpec.describe Servo::Callable do
       )
     end
 
-    it 'allows any context variable when not restricted' do
+    it 'allows any context variable when unrestricted' do
       result = UnrestrictedInteractor.call
       expect(result).to be_success
       expect(result.anything).to eq('allowed')
