@@ -1,18 +1,18 @@
 name: rspec
 
-on: [push,pull_request]
+on: [push, pull_request]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: 2.6.5
-    - name: Run the default task
-      run: |
-        gem install bundler -v 2.4.12
-        bundle install
-        bundle exec rspec
+      - uses: actions/checkout@v2
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2.4
+      - name: Run the default task
+        run: |
+          gem install bundler -v 2.4.19
+          bundle install
+          bundle exec rspec
