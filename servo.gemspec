@@ -15,8 +15,8 @@ Gem::Specification.new do |spec|
   spec.metadata['rubygems_mfa_required'] = 'true'
   spec.metadata['source_code_uri']     = 'https://github.com/gadgetonline/servo'
   spec.name                            = 'servo'
-  spec.required_ruby_version           = Gem::Requirement.new('>= 2.6.0')
-  spec.require_paths                   = %w(lib)
+  spec.required_ruby_version           = Gem::Requirement.new('>= 3.2.4')
+  spec.require_paths                   = %w[lib]
   spec.summary                         = 'A service object with validations, memoization, batch jobs, and more.'
   spec.version                         = Servo::VERSION
 
