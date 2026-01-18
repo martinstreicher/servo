@@ -1,22 +1,8 @@
-# # frozen_string_literal: true
+# frozen_string_literal: true
 
-# class ActiveJobJig < Servo::Job
-#   def execute
-#     true
-#   end
-# end
-
-class TestJob < Servo::ActiveJob
-  include Interactor
-
-  def call
-    puts :EKKKK
+class TestJob < Servo::Jobs::ActiveJob
+  def perform
     context.result = true
     false
   end
-
-  def perform(...)
-    call(...)
-  end
 end
-

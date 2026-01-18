@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 RSpec.describe TestJob do
-  it 'does not change the result' do
-    described_class.perform_now({ a: 1, b: 2 })
+  it 'executes and returns a result' do
+    result = described_class.perform_now
+    expect(result).to be_success
+    expect(result.result).to be_truthy
   end
 end

@@ -4,18 +4,18 @@ require 'bundler/setup'
 
 Bundler.setup
 
+require 'active_job'
+require 'active_support/core_ext/array/wrap'
+require 'active_support/core_ext/object/try'
 require 'debug'
 require 'factory_bot'
 require 'faker'
-require 'rails/all'
 require 'servo'
 require 'sidekiq'
 
-class Application < Rails::Application
-  config.active_job.queue_adapter = :inline
-end
+ActiveJob::Base.queue_adapter = :inline
 
 File.expand_path(__dir__).tap do |root_dir|
-  Dir[File.join(root_dir, 'config/initializers/**/*.rb')].sort.each { |f| require f }
-  Dir[File.join(root_dir, 'support', '**', '*.rb')].sort.each { |f| require f }
+  Dir[File.join(root_dir, 'config/initializers/**/*.rb')].each { |f| require f }
+  Dir[File.join(root_dir, 'support', '**', '*.rb')].each { |f| require f }
 end

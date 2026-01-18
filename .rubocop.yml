@@ -1,52 +1,611 @@
-require:
-  - rubocop-faker
-  - rubocop-ordered_methods
+# frozen_string_literal: true
+
+plugins:
   - rubocop-performance
   - rubocop-rails
   - rubocop-rake
   - rubocop-rspec
+  - rubocop-rspec_rails
   - rubocop-thread_safety
+  - sevencop
+
+require:
+  - rubocop-ordered_methods
+
+# Rails cops configuration
+Rails:
+  Enabled: true
+
+Rails/I18nLocaleTexts:
+  Enabled: false
+
+Rails/Output:
+  Enabled: false
+
+Rails/ApplicationJob:
+  Enabled: false
+
+Rails/Date:
+  Enabled: false
 
 AllCops:
-  Exclude:
-    - 'bin/**/*'
-    - 'db/**/*'
-    - 'node_modules/**/*'
+  SuggestExtensions: false
+  TargetRubyVersion: 3.2
   NewCops: enable
-  TargetRubyVersion: 2.6
-
-Layout/EmptyLinesAroundAttributeAccessor:
-  Enabled: true
-
-Layout/HashAlignment:
-  EnforcedColonStyle: table
-  EnforcedHashRocketStyle: table
-
-Layout/LineLength:
+  Include:
+    - "**/*.rb"
+    - "**/*.gemspec"
+    - "**/*.rake"
+    - "**/Gemfile"
+    - "**/Rakefile"
   Exclude:
-    - Guardfile
-    - config/initializers/backtrace_silencers.rb
-  Max: 110
+    - "vendor/**/*"
+    - "bin/*"
+    - "tmp/**/*"
+  DisplayCopNames: true
+  DisplayStyleGuide: false
+  StyleGuideCopsOnly: false
+  DisabledByDefault: false
 
-Layout/MultilineArrayLineBreaks:
+# Enable Sevencop cops for code quality
+Sevencop/HashElementOrdered:
   Enabled: true
 
-Layout/MultilineAssignmentLayout:
+Sevencop/MethodDefinitionKeywordArgumentOrdered:
   Enabled: true
 
+# Require empty line after the final let/let! in a group
+RSpec/EmptyLineAfterFinalLet:
+  Enabled: true
+
+# Align left braces for adjacent single line lets
+RSpec/AlignLeftLetBrace:
+  Enabled: true
+
+# Indent private/protected/public as deep as method definitions
+Layout/AccessModifierIndentation:
+  EnforcedStyle: indent
+  SupportedStyles:
+    - outdent
+    - indent
+
+# Align the elements of a hash literal if they span more than one line.
+Layout/HashAlignment:
+  EnforcedHashRocketStyle: table
+  EnforcedColonStyle: table
+
+# Enforce each hash key on its own line in multiline hashes
 Layout/MultilineHashKeyLineBreaks:
   Enabled: true
 
-Layout/MultilineMethodArgumentLineBreaks:
+Layout/ParameterAlignment:
+  EnforcedStyle: with_first_parameter
+  SupportedStyles:
+    - with_first_parameter
+    - with_fixed_indentation
+
+Style/AndOr:
+  EnforcedStyle: always
+  SupportedStyles:
+    - always
+    - conditionals
+
+# Checks if usage of %() or %Q() matches configuration.
+Style/BarePercentLiterals:
+  EnforcedStyle: bare_percent
+  SupportedStyles:
+    - percent_q
+    - bare_percent
+
+Style/BlockDelimiters:
+  EnforcedStyle: line_count_based
+  SupportedStyles:
+    - line_count_based
+    - semantic
+  ProceduralMethods:
+    - benchmark
+    - bm
+    - bmbm
+    - create
+    - each_with_object
+    - measure
+    - new
+    - realtime
+    - tap
+    - with_object
+  FunctionalMethods:
+    - let
+    - let!
+    - subject
+    - watch
+  AllowedMethods:
+    - lambda
+    - proc
+    - it
+
+# Indentation of `when`.
+Layout/CaseIndentation:
+  EnforcedStyle: case
+  SupportedStyles:
+    - case
+    - end
+  IndentOneStep: false
+
+Style/ClassAndModuleChildren:
+  EnforcedStyle: nested
+  SupportedStyles:
+    - nested
+    - compact
+
+Style/ClassCheck:
+  EnforcedStyle: is_a?
+  SupportedStyles:
+    - is_a?
+    - kind_of?
+
+# Align with the style guide.
+Style/CollectionMethods:
+  PreferredMethods:
+    collect: "map"
+    collect!: "map!"
+    inject: "reduce"
+    detect: "find"
+    find_all: "select"
+
+# Use ` or %x around command literals.
+Style/CommandLiteral:
+  EnforcedStyle: backticks
+  SupportedStyles:
+    - backticks
+    - percent_x
+    - mixed
+  AllowInnerBackticks: false
+
+# Multi-line method chaining should be done with leading dots.
+Layout/DotPosition:
+  EnforcedStyle: leading
+  SupportedStyles:
+    - leading
+    - trailing
+
+# Warn on empty else statements
+Style/EmptyElse:
+  EnforcedStyle: both
+  SupportedStyles:
+    - empty
+    - nil
+    - both
+
+# Use empty lines between defs.
+Layout/EmptyLineBetweenDefs:
+  AllowAdjacentOneLineDefs: false
+
+Layout/EmptyLinesAroundBlockBody:
+  EnforcedStyle: no_empty_lines
+  SupportedStyles:
+    - empty_lines
+    - no_empty_lines
+
+Layout/EmptyLinesAroundClassBody:
+  EnforcedStyle: no_empty_lines
+  SupportedStyles:
+    - empty_lines
+    - no_empty_lines
+
+Layout/EmptyLinesAroundModuleBody:
+  EnforcedStyle: no_empty_lines
+  SupportedStyles:
+    - empty_lines
+    - no_empty_lines
+
+Layout/ExtraSpacing:
+  AllowForAlignment: true
+  ForceEqualSignAlignment: false
+
+Layout/FirstArgumentIndentation:
+  EnforcedStyle: special_for_inner_method_call_in_parentheses
+  SupportedStyles:
+    - consistent
+    - special_for_inner_method_call
+    - special_for_inner_method_call_in_parentheses
+
+# Checks use of for or each in multiline loops.
+Style/For:
+  EnforcedStyle: each
+  SupportedStyles:
+    - for
+    - each
+
+# Enforce the method used for string formatting.
+Style/FormatString:
+  EnforcedStyle: format
+  SupportedStyles:
+    - format
+    - sprintf
+    - percent
+
+# `MinBodyLength` defines the number of lines of the a body of an if / unless
+# needs to have to trigger this cop
+Style/GuardClause:
+  MinBodyLength: 1
+
+Style/HashEachMethods:
   Enabled: true
+
+Style/HashTransformKeys:
+  Enabled: true
+
+Style/HashTransformValues:
+  Enabled: true
+
+Style/HashSyntax:
+  EnforcedStyle: ruby19
+  SupportedStyles:
+    - ruby19
+    - ruby19_no_mixed_keys
+    - hash_rockets
+  UseHashRocketsWithSymbolValues: false
+
+Layout/IndentationConsistency:
+  EnforcedStyle: normal
+  SupportedStyles:
+    - normal
+    - indented_internal_methods
+
+Layout/IndentationWidth:
+  Width: 2
+
+# Checks the indentation of the first key in a hash literal.
+Layout/FirstHashElementIndentation:
+  EnforcedStyle: special_inside_parentheses
+  SupportedStyles:
+    - special_inside_parentheses
+    - consistent
+
+Style/LambdaCall:
+  EnforcedStyle: call
+  SupportedStyles:
+    - call
+    - braces
+
+Style/Next:
+  EnforcedStyle: skip_modifier_ifs
+  MinBodyLength: 3
+  SupportedStyles:
+    - skip_modifier_ifs
+    - always
+
+Style/NonNilCheck:
+  IncludeSemanticChanges: false
+
+Style/MethodDefParentheses:
+  EnforcedStyle: require_parentheses
+  SupportedStyles:
+    - require_parentheses
+    - require_no_parentheses
+
+Naming/MethodName:
+  EnforcedStyle: snake_case
+  SupportedStyles:
+    - snake_case
+    - camelCase
+
+Layout/MultilineOperationIndentation:
+  EnforcedStyle: aligned
+  SupportedStyles:
+    - aligned
+    - indented
+
+Style/NumericLiterals:
+  MinDigits: 5
+
+# Allow safe assignment in conditions.
+Style/ParenthesesAroundCondition:
+  AllowSafeAssignment: true
+
+Style/PercentLiteralDelimiters:
+  PreferredDelimiters:
+    "%": ()
+    "%i": ()
+    "%q": ()
+    "%Q": ()
+    "%r": "{}"
+    "%s": ()
+    "%w": ()
+    "%W": ()
+    "%x": ()
+
+Style/PercentQLiterals:
+  EnforcedStyle: lower_case_q
+  SupportedStyles:
+    - lower_case_q
+    - upper_case_q
+
+Naming/PredicatePrefix:
+  NamePrefix:
+    - is_
+    - has_
+    - have_
+  ForbiddenPrefixes:
+    - is_
+    - has_
+    - have_
+
+Style/RaiseArgs:
+  EnforcedStyle: exploded
+  SupportedStyles:
+    - compact
+    - exploded
+
+Style/RedundantReturn:
+  AllowMultipleReturnValues: false
+
+# Use / or %r around regular expressions.
+Style/RegexpLiteral:
+  EnforcedStyle: slashes
+  SupportedStyles:
+    - slashes
+    - percent_r
+    - mixed
+  AllowInnerSlashes: false
+
+Style/Semicolon:
+  AllowAsExpressionSeparator: false
+
+Style/SignalException:
+  EnforcedStyle: semantic
+  SupportedStyles:
+    - only_raise
+    - only_fail
+    - semantic
+
+Style/SingleLineBlockParams:
+  Methods:
+    - reduce:
+        - a
+        - e
+    - inject:
+        - a
+        - e
+
+Style/SingleLineMethods:
+  AllowIfMethodIsEmpty: true
+
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+  SupportedStyles:
+    - single_quotes
+    - double_quotes
+
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: single_quotes
+  SupportedStyles:
+    - single_quotes
+    - double_quotes
+
+Layout/SpaceAroundBlockParameters:
+  EnforcedStyleInsidePipes: no_space
+
+Layout/SpaceAroundEqualsInParameterDefault:
+  EnforcedStyle: space
+  SupportedStyles:
+    - space
+    - no_space
+
+Layout/SpaceAroundOperators:
+  AllowForAlignment: true
+
+Layout/SpaceBeforeBlockBraces:
+  EnforcedStyle: space
+  SupportedStyles:
+    - space
+    - no_space
+
+Layout/SpaceInsideBlockBraces:
+  EnforcedStyle: space
+  SupportedStyles:
+    - space
+    - no_space
+  EnforcedStyleForEmptyBraces: no_space
+  SpaceBeforeBlockParameters: true
+
+Layout/SpaceInsideHashLiteralBraces:
+  EnforcedStyle: space
+  EnforcedStyleForEmptyBraces: no_space
+  SupportedStyles:
+    - space
+    - no_space
+
+Layout/SpaceInsideStringInterpolation:
+  EnforcedStyle: no_space
+  SupportedStyles:
+    - space
+    - no_space
+
+Style/SymbolProc:
+  AllowedMethods:
+    - respond_to
+
+Layout/TrailingEmptyLines:
+  EnforcedStyle: final_newline
+  SupportedStyles:
+    - final_newline
+    - final_blank_line
+
+# TrivialAccessors requires exact name matches and doesn't allow
+# predicated methods by default.
+Style/TrivialAccessors:
+  ExactNameMatch: true
+  AllowPredicates: false
+  AllowDSLWriters: false
+  IgnoreClassMethods: false
+  AllowedMethods:
+    - to_ary
+    - to_a
+    - to_c
+    - to_enum
+    - to_h
+    - to_hash
+    - to_i
+    - to_int
+    - to_io
+    - to_open
+    - to_path
+    - to_proc
+    - to_r
+    - to_regexp
+    - to_str
+    - to_s
+    - to_sym
+
+Naming/VariableName:
+  EnforcedStyle: snake_case
+  SupportedStyles:
+    - snake_case
+    - camelCase
+
+Naming/VariableNumber:
+  Enabled: false
+
+Style/WordArray:
+  MinSize: 0
+  WordRegex: !ruby/regexp '/\A[\p{Word}]+\z/'
+
+##################### Metrics ##################################
+
+Metrics/AbcSize:
+  Max: 16
+
+Metrics/BlockNesting:
+  Max: 3
+
+Metrics/ClassLength:
+  CountComments: false
+  Max: 100
+
+Metrics/ModuleLength:
+  CountComments: false
+  Max: 100
+
+Metrics/CyclomaticComplexity:
+  Max: 6
+
+Layout/LineLength:
+  Max: 120
+  AutoCorrect: true
+  AllowedPatterns:
+    - "^ *# "
+  AllowURI: true
+  URISchemes:
+    - http
+    - https
+
+Metrics/MethodLength:
+  CountComments: false
+  Max: 12
+  Exclude:
+    - "lib/servo/callable/context_restriction.rb"
+
+Metrics/ParameterLists:
+  Max: 5
+  CountKeywordArgs: true
+
+Metrics/PerceivedComplexity:
+  Max: 7
+
+Metrics/BlockLength:
+  Enabled: false
+
+##################### Lint ##################################
+
+# Allow safe assignment in conditions.
+Lint/AssignmentInCondition:
+  AllowSafeAssignment: true
+
+# Align ends correctly.
+Layout/EndAlignment:
+  EnforcedStyleAlignWith: keyword
+  AutoCorrect: true
+
+Layout/DefEndAlignment:
+  EnforcedStyleAlignWith: start_of_line
+  AutoCorrect: true
+
+Lint/ConstantDefinitionInBlock:
+  Enabled: false
+
+##################### RSpec ##################################
+
+RSpec/NestedGroups:
+  Max: 4
+
+RSpec/MultipleExpectations:
+  Enabled: false
+
+RSpec/ExampleLength:
+  Max: 15
+
+RSpec/DescribeClass:
+  Exclude:
+    - "spec/unit/dry_types_integration_spec.rb"
+
+RSpec/SpecFilePathFormat:
+  Exclude:
+    - "spec/unit/callable_dsl_spec.rb"
+    - "spec/unit/controllers/concerns/reply_spec.rb"
+
+RSpec/VerifiedDoubles:
+  Enabled: false
+
+# Allow before(:all)/after(:all) for defining test classes that require named constants
+RSpec/BeforeAfterAll:
+  Enabled: false
+
+# Allow explicit class constant declarations in specs (required for ActiveModel)
+RSpec/LeakyConstantDeclaration:
+  Enabled: false
+
+# Allow remove_const cleanup in specs
+RSpec/RemoveConst:
+  Enabled: false
+
+##################### Thread Safety ##################################
+
+# Disable class_attribute warnings - these are intentionally used for DSL
+ThreadSafety/ClassAndModuleAttributes:
+  Enabled: false
+
+# Disable Dir.chdir warning for gemspec
+ThreadSafety/DirChdir:
+  Exclude:
+    - "*.gemspec"
+
+##################### Gemspec ##################################
+
+Gemspec/RequiredRubyVersion:
+  Enabled: false
+
+##################### Naming ##################################
+
+# Allow predicate methods without ? suffix (e.g., job_executed)
+Naming/PredicateMethod:
+  Enabled: false
+
+##################### Style ##################################
+
+Style/Documentation:
+  Enabled: false
+
+Style/RescueStandardError:
+  EnforcedStyle: implicit
+
+Style/IfUnlessModifier:
+  Enabled: false
+
+Style/WhileUntilModifier:
+  Enabled: false
 
 Layout/SpaceAroundMethodCallOperator:
-  Enabled: true
-
-Lint/DeprecatedOpenSSLConstant:
-  Enabled: true
-
-Lint/MixedRegexpCaptureTypes:
   Enabled: true
 
 Lint/RaiseException:
@@ -55,10 +614,25 @@ Lint/RaiseException:
 Lint/StructNewOverride:
   Enabled: true
 
-Lint/DuplicateElsifCondition:
+Style/ExponentialNotation:
+  Enabled: true
+
+Layout/BeginEndAlignment:
+  Enabled: true
+
+Layout/EmptyLinesAroundAttributeAccessor:
   Enabled: true
 
 Lint/BinaryOperatorWithIdenticalOperands:
+  Enabled: true
+
+Lint/DeprecatedOpenSSLConstant:
+  Enabled: true
+
+Lint/DuplicateElsifCondition:
+  Enabled: true
+
+Lint/DuplicateRequire:
   Enabled: true
 
 Lint/DuplicateRescueException:
@@ -67,10 +641,19 @@ Lint/DuplicateRescueException:
 Lint/EmptyConditionalBody:
   Enabled: true
 
+Lint/EmptyFile:
+  Enabled: true
+
 Lint/FloatComparison:
   Enabled: true
 
+Lint/IdentityComparison:
+  Enabled: true
+
 Lint/MissingSuper:
+  Enabled: true
+
+Lint/MixedRegexpCaptureTypes:
   Enabled: true
 
 Lint/OutOfRangeRegexpRef:
@@ -82,25 +665,85 @@ Lint/SelfAssignment:
 Lint/TopLevelReturnWithArgument:
   Enabled: true
 
+Lint/TrailingCommaInAttributeDeclaration:
+  Enabled: true
+
 Lint/UnreachableLoop:
   Enabled: true
 
-Metrics/AbcSize:
-  Max: 100
+Lint/UselessMethodDefinition:
+  Enabled: true
 
-Metrics/BlockLength:
-  Exclude:
-    - Guardfile
-    - 'spec/**/*spec.rb'
+Lint/UselessTimes:
+  Enabled: true
 
-Metrics/CyclomaticComplexity:
-  Enabled: false
+Style/AccessorGrouping:
+  Enabled: true
 
-Metrics/MethodLength:
-  Max: 40
+Style/ArrayCoercion:
+  Enabled: true
 
-Metrics/PerceivedComplexity:
-  Enabled: false
+Style/BisectedAttrAccessor:
+  Enabled: true
+
+Style/CaseLikeIf:
+  Enabled: true
+
+Style/CombinableLoops:
+  Enabled: true
+
+Style/ExplicitBlockArgument:
+  Enabled: true
+
+Style/GlobalStdStream:
+  Enabled: true
+
+Style/HashAsLastArrayItem:
+  Enabled: true
+
+Style/HashLikeCase:
+  Enabled: true
+
+Style/KeywordParametersOrder:
+  Enabled: true
+
+Style/OptionalBooleanParameter:
+  Enabled: true
+
+Style/RedundantAssignment:
+  Enabled: true
+
+Style/RedundantFetchBlock:
+  Enabled: true
+
+Style/RedundantFileExtensionInRequire:
+  Enabled: true
+
+Style/RedundantRegexpCharacterClass:
+  Enabled: true
+
+Style/RedundantRegexpEscape:
+  Enabled: true
+
+Style/RedundantSelfAssignment:
+  Enabled: true
+
+Style/SingleArgumentDig:
+  Enabled: true
+
+Style/SlicingWithRange:
+  Enabled: true
+
+Style/SoleNestedConditional:
+  Enabled: true
+
+Style/StringConcatenation:
+  Enabled: true
+
+Bundler/OrderedGems:
+  Enabled: true
+
+##################### Performance ##################################
 
 Performance/AncestorsInclude:
   Enabled: true
@@ -124,124 +767,4 @@ Performance/Squeeze:
   Enabled: true
 
 Performance/StringInclude:
-  Enabled: true
-
-Rails/ActiveRecordCallbacksOrder:
-  Enabled: true
-
-Rails/FindById:
-  Enabled: true
-
-Rails/Inquiry:
-  Enabled: true
-
-Rails/MailerName:
-  Enabled: true
-
-Rails/MatchRoute:
-  Enabled: true
-
-Rails/NegateInclude:
-  Enabled: true
-
-Rails/Pluck:
-  Enabled: true
-
-Rails/PluckInWhere:
-  Enabled: true
-
-Rails/RenderInline:
-  Enabled: true
-
-Rails/RenderPlainText:
-  Enabled: true
-
-Rails/ShortI18n:
-  Enabled: true
-
-Rails/WhereExists:
-  Enabled: true
-
-Rails:
-  Enabled: true
-
-Rails/HttpPositionalArguments:
-  Exclude:
-
-Rails/SkipsModelValidations:
-  Enabled: false
-
-RSpec/EmptyExampleGroup:
-  Enabled: false
-
-RSpec/ExampleLength:
-  Max: 15
-
-RSpec/MultipleExpectations:
-  Enabled: false
-
-Style/Documentation:
-  Enabled: false
-
-Style/ExponentialNotation:
-  Enabled: true
-
-Style/HashEachMethods:
-  Enabled: false
-
-Style/HashTransformKeys:
-  Enabled: false
-
-Style/HashTransformValues:
-  Enabled: false
-
-Style/RedundantRegexpCharacterClass:
-  Enabled: true
-
-Style/RedundantRegexpEscape:
-  Enabled: true
-
-Style/SlicingWithRange:
-  Enabled: true
-
-Style/AccessorGrouping:
-  Enabled: true
-
-Style/ArrayCoercion:
-  Enabled: true
-
-Style/BisectedAttrAccessor:
-  Enabled: true
-
-Style/CaseLikeIf:
-  Enabled: true
-
-Style/HashAsLastArrayItem:
-  Enabled: true
-
-Style/HashLikeCase:
-  Enabled: true
-
-Style/RedundantAssignment:
-  Enabled: true
-
-Style/RedundantFetchBlock:
-  Enabled: true
-
-Style/RedundantFileExtensionInRequire:
-  Enabled: true
-
-Style/ExplicitBlockArgument:
-  Enabled: true
-
-Style/GlobalStdStream:
-  Enabled: true
-
-Style/OptionalBooleanParameter:
-  Enabled: true
-
-Style/SingleArgumentDig:
-  Enabled: true
-
-Style/StringConcatenation:
   Enabled: true

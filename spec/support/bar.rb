@@ -3,16 +3,9 @@
 require 'sidekiq'
 
 module Servo
-  class Bar < SidekiqJob
-    include Callable
-
-    if defined?(Sidekiq)
-      include Sidekiq::Worker
-    end
-
-    def perform(**args)
-      call(**args)
+  class Bar < Jobs::SidekiqJob
+    def perform
+      true
     end
   end
 end
-

@@ -34,7 +34,7 @@ RSpec.describe Gizmo do
 
     it 'returns the validation error messages in the context' do
       expect(described_class.call(name: nil).error_messages).to(
-        match_array(["Name can't be blank"])
+        contain_exactly("Name can't be blank")
       )
     end
   end

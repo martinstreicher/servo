@@ -3,12 +3,9 @@
 require 'active_job'
 
 module Servo
-  class Foo < ::ActiveJob::Base
-    include Callable
-
-    def perform(**args)
-      call(**args)
+  class Foo < Servo::Jobs::ActiveJob
+    def perform
+      true
     end
   end
 end
-
