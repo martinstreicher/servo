@@ -21,6 +21,6 @@ group :development, :test do
   gem 'rubocop-rspec_rails'
   gem 'rubocop-thread_safety'
   gem 'sevencop'
-  gem 'sidekiq', '< 7'
+  gem 'sidekiq', '< 9'
   gem 'test-prof'
 end
