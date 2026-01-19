@@ -1,19 +1,33 @@
 # Servo
 
-A Ruby gem for building service objects (interactors) with validations, type checking, and background job support.
+*servo* is a Ruby gem for building service objects (often called interactors)
+with validations, type checking, and background job support.
 
-Servo builds on the [interactor](https://github.com/collectiveidea/interactor) gem, adding:
+*servo* builds on the popular [interactor](https://github.com/collectiveidea/interactor)
+gem, adding a handful of features to make service objects behave more like an
+ActiveModel record.
 
-- **Input/Output DSL** - Declare allowed context variables with optional type constraints
-- **Context Restriction** - Prevent accidental assignment of undeclared variables (enabled by default)
-- **Type Checking** - Validate inputs with Ruby classes, union types, or dry-types
-- **ActiveModel Validations** - Full validation support with error messages
-- **Callbacks** - Before, after, and around callbacks for the perform method
-- **Background Jobs** - Run interactors asynchronously with ActiveJob or Sidekiq
+- **Context Restrictions** - The `input` and `output` DSL declare what context
+  variables are readable and writeable, respectively. Each variable definition can optionally
+  mandate a type to further protect against unexpected side effects in the context.
+  Types can be code Ruby classes, union types, or *dry-types*.
 
-## Installation
+- **ActiveModel Validations** - All ActiveModel validation features, callbacks,
+  and errors are built-in to the interactor life cycle. If a context is invalid, the service
+  object will not execute its `call` method and fail immediately instead.
 
-Add to your Gemfile:
+- **Callbacks** - `before`, `after`, and `around` callbacks are available to
+ wrap the call method with additional logic.
+
+- **Background Jobs** - Run your interactor asynchronously with ActiveJob or Sidekiq.
+
+*servo* can reduce the amount of boilerplate code in your controllers and service objects.
+Indeed, many controller actions can be reduced to one or two lines of code.
+See the examples below.
+
+## How to Install *servo*
+
+Add *servo* to the production environment in your Gemfile:
 
 ```ruby
 gem 'servo'
@@ -22,8 +36,8 @@ gem 'servo'
 For enhanced type checking with dry-types (optional):
 
 ```ruby
-gem 'servo'
 gem 'dry-types'
+gem 'servo'
 ```
 
 Then run:
@@ -47,7 +61,7 @@ class CreateUser < Servo::Base
   validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :name,  presence: true
 
-  def perform
+  def call
     self.user = User.create!(email: email, name: name)
     user
   end
@@ -67,27 +81,25 @@ class CreateUser
   validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :name,  presence: true
 
-  def perform
+  def call
     self.user = User.create!(email: email, name: name)
     user
   end
 end
 ```
 
-Both approaches are equivalent. Use whichever style you prefer.
+Both approaches are equivalent. Use the style you prefer.
 
 ### Calling an Interactor
 
 ```ruby
 result = CreateUser.call(email: 'alice@example.com', name: 'Alice')
-
 result.success?  # => true
 result.user      # => #<User id: 1, email: "alice@example.com", name: "Alice">
-result.data      # => #<User ...> (same as return value of perform)
+result.data      # => #<User ...> (same as return value of call)
 
 # With invalid input
 result = CreateUser.call(email: '', name: 'Bob')
-
 result.failure?        # => true
 result.errors          # => #<ActiveModel::Errors ...>
 result.error_messages  # => ["Email can't be blank", "Email is invalid"]
@@ -95,7 +107,8 @@ result.error_messages  # => ["Email can't be blank", "Email is invalid"]
 
 ## Declaring Inputs and Outputs
 
-Use `input` to declare expected parameters and `output` to declare values your interactor will produce:
+Use `input` to declare expected parameters and `output` to declare values your interactor will
+produce:
 
 ```ruby
 class ProcessOrder
@@ -106,7 +119,7 @@ class ProcessOrder
   output :receipt
   output :confirmation_number
 
-  def perform
+  def call
     order = Order.find(order_id)
     self.receipt = generate_receipt(order)
     self.confirmation_number = SecureRandom.hex(8)
@@ -117,7 +130,8 @@ end
 
 ### Context Restriction (Default Behavior)
 
-By default, Servo restricts context to only declared inputs and outputs. Attempting to set an undeclared variable raises an error:
+By default, Servo restricts context to only declared inputs and outputs. Attempting to set an
+undeclared variable raises an error:
 
 ```ruby
 class MyInteractor
@@ -125,7 +139,7 @@ class MyInteractor
 
   input :name
 
-  def perform
+  def call
     context.undeclared = 'value'  # Raises Servo::UndeclaredContextVariableError!
   end
 end
@@ -139,7 +153,7 @@ class LegacyInteractor
 
   unrestrict_context!
 
-  def perform
+  def call
     context.anything = 'allowed'  # No error
   end
 end
@@ -156,7 +170,7 @@ class Greet
   input :name,  type: String
   input :count, type: Integer
 
-  def perform
+  def call
     "Hello, #{name}!" * count
   end
 end
@@ -175,7 +189,7 @@ class ParseDate
 
   input :date, type: [String, Date, Time]
 
-  def perform
+  def call
     case date
     when String then Date.parse(date)
     when Time   then date.to_date
@@ -200,7 +214,7 @@ class CreateProduct
   input :price, type: Types::Coercible::Float.constrained(gt: 0)
   input :tags,  type: Types::Array.of(Types::String)
 
-  def perform
+  def call
     Product.create!(name: name, price: price, tags: tags)
   end
 end
@@ -222,16 +236,16 @@ Servo includes ActiveModel::Validations for full validation support:
 class TransferFunds
   include Servo::Callable
 
+  input :amount
   input :from_account
   input :to_account
-  input :amount
 
   validates :from_account, :to_account, presence: true
   validates :amount, numericality: { greater_than: 0 }
 
   validate :sufficient_balance
 
-  def perform
+  def call
     from_account.withdraw(amount)
     to_account.deposit(amount)
   end
@@ -250,31 +264,26 @@ end
 
 ## Callbacks
 
-Use ActiveSupport callbacks to run code before, after, or around `perform`:
+Use ActiveSupport callbacks to run code before, after, or around `call`:
 
 ```ruby
 class AuditedOperation
   include Servo::Callable
 
-  input  :user
   input  :action
+  input  :user
   output :audit_log
 
-  set_callback :perform, :before, :start_audit
-  set_callback :perform, :after,  :complete_audit
-  set_callback :perform, :around, :measure_duration
+  set_callback :call, :before, :start_audit
+  set_callback :call, :after,  :complete_audit
+  set_callback :call, :around, :measure_duration
 
-  def perform
+  def call
     # Main logic here
     execute_action
   end
 
   private
-
-  def start_audit
-    self.audit_log = []
-    audit_log << "Started: #{action}"
-  end
 
   def complete_audit
     audit_log << "Completed: #{action}"
@@ -285,6 +294,11 @@ class AuditedOperation
     start = Time.current
     yield
     audit_log << "Duration: #{Time.current - start}s"
+  end
+
+  def start_audit
+    self.audit_log = []
+    audit_log << "Started: #{action}"
   end
 end
 ```
@@ -301,7 +315,7 @@ class SendWelcomeEmail
 
   input :user_id
 
-  def perform
+  def call
     user = User.find(user_id)
     UserMailer.welcome(user).deliver_now
   end
@@ -323,12 +337,12 @@ Create job classes that include Callable:
 
 ```ruby
 class ProcessPaymentJob < Servo::Jobs::ActiveJob
-  input :order_id
   input :amount
+  input :order_id
 
   validates :order_id, :amount, presence: true
 
-  def perform
+  def call
     order = Order.find(order_id)
     PaymentGateway.charge(order, amount)
   end
@@ -348,7 +362,7 @@ result.success?
 class ImportDataJob < Servo::Jobs::SidekiqJob
   input :file_path
 
-  def perform
+  def call
     CSV.foreach(file_path) do |row|
       Record.create!(row.to_h)
     end
@@ -372,10 +386,10 @@ class Api::UsersController < ApplicationController
 
     reply(
       condition: result.success?,
-      record:    result.user,
       errors:    result.errors,
-      success:   :created,
-      failure:   :unprocessable_entity
+      failure:   :unprocessable_entity,
+      record:    result.user,
+      success:   :created
     )
   end
 
@@ -415,13 +429,13 @@ class BaseInteractor
 end
 
 class CreatePost < BaseInteractor
-  input  :title
   input  :body
+  input  :title
   output :post
 
   validates :title, presence: true
 
-  def perform
+  def call
     self.post = current_user.posts.create!(title: title, body: body)
   end
 end
@@ -429,8 +443,15 @@ end
 
 ## Development
 
+Enhancements, bug fixes, suggestions, tests, sample code, and expanded documentation
+are welcome. Issues can be reported at [GitHub](https://github.com/martinstreicher/servo/issues).
+
 ```bash
+# Clone the respository
+git clone git@github.com:martinstreicher/servo.git
+
 # Install dependencies
+cd servo
 bundle install
 
 # Run tests
@@ -442,4 +463,5 @@ bundle exec rubocop
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+The gem is available as open source under the terms of the
+[MIT License](https://opensource.org/licenses/MIT).

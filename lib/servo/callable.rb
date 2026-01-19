@@ -12,10 +12,10 @@ module Servo
   # This implementation is based on the interactor gem but adds features to make usage
   # more uniform:
   #
-  # * Define only the `perform` method to implement your interactor's unique logic.
+  # * Define only the `call` method to implement your interactor's unique logic.
   #
   # * Integrates ActiveModel::Validations to validate any or all of the params
-  #   passed to your interactor. If any validations fail, the `perform` method
+  #   passed to your interactor. If any validations fail, the `call` method
   #   does not run.
   #
   # * Use `input` and `output` DSL methods to declare allowed context variables.
@@ -38,7 +38,7 @@ module Servo
   #
   #     validates :name, presence: true
   #
-  #     def perform
+  #     def call
   #       self.greeting = "Hello, #{name}!"
   #       greeting
   #     end
@@ -61,7 +61,7 @@ module Servo
       extend Callable::Dsl
       prepend Callable::CallOverride
 
-      define_callbacks :perform
+      define_callbacks :call
 
       class_attribute :_allowed_inputs, default: Set.new
       class_attribute :_allowed_outputs, default: Set.new
@@ -76,8 +76,6 @@ module Servo
     end
 
     def method_missing(method, *, &) = context.public_send(method, *, &)
-
-    def perform = fail NotImplementedError, "Method #perform must be implemented in #{self.class.name}"
 
     def respond_to_missing?(method_name, _include_private = false)
       super || context.respond_to?(method_name)

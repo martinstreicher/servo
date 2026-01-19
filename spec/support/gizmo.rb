@@ -5,7 +5,7 @@ class Gizmo
 
   validates :name, presence: true
 
-  def perform
+  def call
     true
   end
 end

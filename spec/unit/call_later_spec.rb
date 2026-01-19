@@ -10,7 +10,7 @@ RSpec.describe 'Servo::Callable.call_later' do
       input  :message
       output :result
 
-      def perform
+      def call
         self.result = "Processed: #{message}"
         result
       end
@@ -23,7 +23,7 @@ RSpec.describe 'Servo::Callable.call_later' do
 
       validates :value, presence: true
 
-      def perform
+      def call
         value
       end
     end

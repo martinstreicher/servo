@@ -14,7 +14,7 @@ RSpec.describe 'Servo::Callable dry-types integration' do
 
         input :tags, type: Types::Array.of(Types::String)
 
-        def perform
+        def call
           tags.join(', ')
         end
       end
@@ -53,7 +53,7 @@ RSpec.describe 'Servo::Callable dry-types integration' do
           port: Types::Integer
         )
 
-        def perform
+        def call
           "#{config[:host]}:#{config[:port]}"
         end
       end
@@ -84,7 +84,7 @@ RSpec.describe 'Servo::Callable dry-types integration' do
         input :name, type: Types::String.constrained(min_size: 2)
         input :age, type: Types::Integer.constrained(gteq: 0, lteq: 150)
 
-        def perform
+        def call
           "#{name} is #{age} years old"
         end
       end
@@ -127,7 +127,7 @@ RSpec.describe 'Servo::Callable dry-types integration' do
         input :name, type: Types::String
         input :nickname, type: Types::String.optional
 
-        def perform
+        def call
           nickname || name
         end
       end
@@ -157,7 +157,7 @@ RSpec.describe 'Servo::Callable dry-types integration' do
 
         input :count, type: Types::Coercible::Integer
 
-        def perform
+        def call
           count * 2
         end
       end
@@ -190,7 +190,7 @@ RSpec.describe 'Servo::Callable dry-types integration' do
         input :tags, type: Types::Array.of(Types::String)  # dry-types
         input :date, type: [String, Date]                  # Union type
 
-        def perform
+        def call
           { date:, name:, tags: }
         end
       end

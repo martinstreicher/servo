@@ -16,7 +16,7 @@ module Servo
   #
   #     validates :email, presence: true
   #
-  #     def perform
+  #     def call
   #       self.user = User.create!(email: email, name: name)
   #     end
   #   end

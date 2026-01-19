@@ -10,7 +10,7 @@ RSpec.describe Servo::Callable do
         input :name
         input :age, type: Integer
 
-        def perform
+        def call
           "Hello, #{name}!"
         end
       end
@@ -46,7 +46,7 @@ RSpec.describe Servo::Callable do
         input  :multiplier
         output :computed_value
 
-        def perform
+        def call
           self.computed_value = 10 * (multiplier || 1)
           computed_value
         end
@@ -71,7 +71,7 @@ RSpec.describe Servo::Callable do
 
         input :date_value, type: [String, Date]
 
-        def perform
+        def call
           date_value
         end
       end
@@ -106,7 +106,7 @@ RSpec.describe Servo::Callable do
         input  :allowed_input
         output :allowed_output
 
-        def perform
+        def call
           self.allowed_output = 'set'
           'done'
         end
@@ -117,7 +117,7 @@ RSpec.describe Servo::Callable do
 
         unrestrict_context!
 
-        def perform
+        def call
           context.anything = 'allowed'
           'done'
         end
@@ -128,7 +128,7 @@ RSpec.describe Servo::Callable do
 
         input :name
 
-        def perform
+        def call
           context.undeclared_var = 'bad'
         end
       end
@@ -167,7 +167,7 @@ RSpec.describe Servo::Callable do
 
         input :parent_input
 
-        def perform
+        def call
           parent_input
         end
       end
@@ -175,7 +175,7 @@ RSpec.describe Servo::Callable do
       class ChildInteractor < ParentInteractor
         input :child_input
 
-        def perform
+        def call
           "#{parent_input} + #{child_input}"
         end
       end

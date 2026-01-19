@@ -3,7 +3,7 @@
 class Crank
   include Servo::Callable
 
-  def perform
+  def call
     context.result = true
     false
   end

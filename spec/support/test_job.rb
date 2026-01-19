@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class TestJob < Servo::Jobs::ActiveJob
-  def perform
+  def call
     context.result = true
     false
   end

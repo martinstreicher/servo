@@ -8,12 +8,12 @@ RSpec.describe 'Servo::Callable callbacks' do
       input  :value
       output :log
 
-      set_callback :perform, :before, :log_before
-      set_callback :perform, :after, :log_after
+      set_callback :call, :before, :log_before
+      set_callback :call, :after, :log_after
 
-      def perform
+      def call
         self.log ||= []
-        log << 'perform'
+        log << 'call'
         value
       end
 
@@ -35,17 +35,17 @@ RSpec.describe 'Servo::Callable callbacks' do
       input  :value
       output :log
 
-      set_callback :perform, :around, :wrap_perform
+      set_callback :call, :around, :wrap_call
 
-      def perform
+      def call
         self.log ||= []
-        log << 'perform'
+        log << 'call'
         value
       end
 
       private
 
-      def wrap_perform
+      def wrap_call
         self.log ||= []
         log << 'around_before'
         yield
@@ -64,10 +64,10 @@ RSpec.describe 'Servo::Callable callbacks' do
       result = CallbackInteractor.call(value: 'test')
 
       expect(result).to be_success
-      expect(result.log).to eq(%w(before perform after))
+      expect(result.log).to eq(%w[before call after])
     end
 
-    it 'returns the perform result as data' do
+    it 'returns the call result as data' do
       result = CallbackInteractor.call(value: 'test')
 
       expect(result.data).to eq('test')
@@ -75,11 +75,11 @@ RSpec.describe 'Servo::Callable callbacks' do
   end
 
   describe 'around callbacks' do
-    it 'wraps the perform execution' do
+    it 'wraps the call execution' do
       result = AroundCallbackInteractor.call(value: 'wrapped')
 
       expect(result).to be_success
-      expect(result.log).to eq(%w(around_before perform around_after))
+      expect(result.log).to eq(%w[around_before call around_after])
     end
   end
 end
