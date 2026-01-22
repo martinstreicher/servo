@@ -7,9 +7,9 @@ module Servo
     ##
     # Base class for ActiveJob-based interactors.
     #
-    # Subclasses define `perform` for their business logic, just like
+    # Subclasses define `call` for their business logic, just like
     # plain Servo::Callable classes. When the job is enqueued and executed,
-    # the arguments are passed to `call` which invokes `perform`.
+    # ActiveJob's `perform` method routes to the Servo `call` method.
     #
     # Example:
     #
@@ -18,7 +18,7 @@ module Servo
     #
     #     validates :user_id, presence: true
     #
-    #     def perform
+    #     def call
     #       user = User.find(user_id)
     #       UserMailer.welcome(user).deliver_now
     #     end

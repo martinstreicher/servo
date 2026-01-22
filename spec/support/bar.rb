@@ -4,7 +4,7 @@ require 'sidekiq'
 
 module Servo
   class Bar < Jobs::SidekiqJob
-    def perform
+    def call
       true
     end
   end

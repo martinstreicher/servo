@@ -3,7 +3,7 @@
 class SidekiqJobJig < Servo::Jobs::SidekiqJob
   include Sidekiq::Worker
 
-  def perform
+  def call
     true
   end
 end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class TestJob < Servo::Jobs::ActiveJob
+TestJob = Class.new(Servo::Jobs::ActiveJob) do
   def call
     context.result = true
     false

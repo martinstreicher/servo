@@ -5,9 +5,9 @@ module Servo
     ##
     # Base class for Sidekiq-based interactors.
     #
-    # Subclasses define `perform` for their business logic, just like
+    # Subclasses define `call` for their business logic, just like
     # plain Servo::Callable classes. When the job is enqueued and executed,
-    # the arguments are passed to `call` which invokes `perform`.
+    # Sidekiq's `perform` method routes to the Servo `call` method.
     #
     # Example:
     #
@@ -16,7 +16,7 @@ module Servo
     #
     #     validates :order_id, presence: true
     #
-    #     def perform
+    #     def call
     #       order = Order.find(order_id)
     #       order.process!
     #     end

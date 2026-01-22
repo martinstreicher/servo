@@ -8,8 +8,9 @@ end
 
 RSpec.describe 'Servo::Callable dry-types integration' do
   describe 'array types' do
-    before(:all) do
-      class ArrayTypeInteractor
+    let(:klass) do
+      Class.new do
+        Object.const_set(FactoryBot.generate(:class_name), self)
         include Servo::Callable
 
         input :tags, type: Types::Array.of(Types::String)
@@ -20,32 +21,29 @@ RSpec.describe 'Servo::Callable dry-types integration' do
       end
     end
 
-    after(:all) do
-      Object.send(:remove_const, :ArrayTypeInteractor)
-    end
-
     it 'accepts valid array of strings' do
-      result = ArrayTypeInteractor.call(tags: %w(ruby rails))
+      result = klass.call(tags: %w(ruby rails))
       expect(result).to be_success
       expect(result.data).to eq('ruby, rails')
     end
 
     it 'rejects array with wrong element types' do
-      result = ArrayTypeInteractor.call(tags: [1, 2, 3])
+      result = klass.call(tags: [1, 2, 3])
       expect(result).to be_failure
       expect(result.errors[:tags]).to be_present
     end
 
     it 'rejects non-array value' do
-      result = ArrayTypeInteractor.call(tags: 'not an array')
+      result = klass.call(tags: 'not an array')
       expect(result).to be_failure
       expect(result.errors[:tags]).to be_present
     end
   end
 
   describe 'hash schema types' do
-    before(:all) do
-      class HashSchemaInteractor
+    let(:klass) do
+      Class.new do
+        Object.const_set(FactoryBot.generate(:class_name), self)
         include Servo::Callable
 
         input :config, type: Types::Hash.schema(
@@ -59,26 +57,23 @@ RSpec.describe 'Servo::Callable dry-types integration' do
       end
     end
 
-    after(:all) do
-      Object.send(:remove_const, :HashSchemaInteractor)
-    end
-
     it 'accepts valid hash with correct schema' do
-      result = HashSchemaInteractor.call(config: { host: 'localhost', port: 3000 })
+      result = klass.call(config: { host: 'localhost', port: 3000 })
       expect(result).to be_success
       expect(result.data).to eq('localhost:3000')
     end
 
     it 'rejects hash with wrong value types' do
-      result = HashSchemaInteractor.call(config: { host: 'localhost', port: 'not a number' })
+      result = klass.call(config: { host: 'localhost', port: 'not a number' })
       expect(result).to be_failure
       expect(result.errors[:config]).to be_present
     end
   end
 
   describe 'constrained types' do
-    before(:all) do
-      class ConstrainedTypeInteractor
+    let(:klass) do
+      Class.new do
+        Object.const_set(FactoryBot.generate(:class_name), self)
         include Servo::Callable
 
         input :name, type: Types::String.constrained(min_size: 2)
@@ -90,38 +85,35 @@ RSpec.describe 'Servo::Callable dry-types integration' do
       end
     end
 
-    after(:all) do
-      Object.send(:remove_const, :ConstrainedTypeInteractor)
-    end
-
     it 'accepts values meeting constraints' do
-      result = ConstrainedTypeInteractor.call(age: 30, name: 'John')
+      result = klass.call(age: 30, name: 'John')
       expect(result).to be_success
       expect(result.data).to eq('John is 30 years old')
     end
 
     it 'rejects string too short' do
-      result = ConstrainedTypeInteractor.call(age: 30, name: 'J')
+      result = klass.call(age: 30, name: 'J')
       expect(result).to be_failure
       expect(result.errors[:name]).to be_present
     end
 
     it 'rejects age out of range' do
-      result = ConstrainedTypeInteractor.call(age: 200, name: 'John')
+      result = klass.call(age: 200, name: 'John')
       expect(result).to be_failure
       expect(result.errors[:age]).to be_present
     end
 
     it 'rejects negative age' do
-      result = ConstrainedTypeInteractor.call(age: -1, name: 'John')
+      result = klass.call(age: -1, name: 'John')
       expect(result).to be_failure
       expect(result.errors[:age]).to be_present
     end
   end
 
   describe 'optional types' do
-    before(:all) do
-      class OptionalTypeInteractor
+    let(:klass) do
+      Class.new do
+        Object.const_set(FactoryBot.generate(:class_name), self)
         include Servo::Callable
 
         input :name, type: Types::String
@@ -133,26 +125,23 @@ RSpec.describe 'Servo::Callable dry-types integration' do
       end
     end
 
-    after(:all) do
-      Object.send(:remove_const, :OptionalTypeInteractor)
-    end
-
     it 'accepts nil for optional type' do
-      result = OptionalTypeInteractor.call(name: 'John', nickname: nil)
+      result = klass.call(name: 'John', nickname: nil)
       expect(result).to be_success
       expect(result.data).to eq('John')
     end
 
     it 'accepts value for optional type' do
-      result = OptionalTypeInteractor.call(name: 'John', nickname: 'Johnny')
+      result = klass.call(name: 'John', nickname: 'Johnny')
       expect(result).to be_success
       expect(result.data).to eq('Johnny')
     end
   end
 
   describe 'coercible types' do
-    before(:all) do
-      class CoercibleTypeInteractor
+    let(:klass) do
+      Class.new do
+        Object.const_set(FactoryBot.generate(:class_name), self)
         include Servo::Callable
 
         input :count, type: Types::Coercible::Integer
@@ -163,27 +152,24 @@ RSpec.describe 'Servo::Callable dry-types integration' do
       end
     end
 
-    after(:all) do
-      Object.send(:remove_const, :CoercibleTypeInteractor)
-    end
-
     it 'accepts coercible string (validates successfully)' do
       # NOTE: Servo validates types but does not coerce values.
       # The value remains a string, but dry-types Coercible considers it valid.
-      result = CoercibleTypeInteractor.call(count: '5')
+      result = klass.call(count: '5')
       expect(result).to be_success
     end
 
     it 'accepts integer directly' do
-      result = CoercibleTypeInteractor.call(count: 5)
+      result = klass.call(count: 5)
       expect(result).to be_success
       expect(result.data).to eq(10)
     end
   end
 
   describe 'mixed with plain Ruby types' do
-    before(:all) do
-      class MixedTypesInteractor
+    let(:klass) do
+      Class.new do
+        Object.const_set(FactoryBot.generate(:class_name), self)
         include Servo::Callable
 
         input :name, type: String                          # Plain Ruby class
@@ -196,12 +182,8 @@ RSpec.describe 'Servo::Callable dry-types integration' do
       end
     end
 
-    after(:all) do
-      Object.send(:remove_const, :MixedTypesInteractor)
-    end
-
     it 'validates all type specifications correctly' do
-      result = MixedTypesInteractor.call(
+      result = klass.call(
         date: Date.today,
         name: 'Test',
         tags: %w(a b)
@@ -210,7 +192,7 @@ RSpec.describe 'Servo::Callable dry-types integration' do
     end
 
     it 'fails on plain Ruby type violation' do
-      result = MixedTypesInteractor.call(
+      result = klass.call(
         date: Date.today,
         name: 123,
         tags: %w(a b)
@@ -220,7 +202,7 @@ RSpec.describe 'Servo::Callable dry-types integration' do
     end
 
     it 'fails on dry-types violation' do
-      result = MixedTypesInteractor.call(
+      result = klass.call(
         date: Date.today,
         name: 'Test',
         tags: [1, 2, 3]
@@ -230,7 +212,7 @@ RSpec.describe 'Servo::Callable dry-types integration' do
     end
 
     it 'fails on union type violation' do
-      result = MixedTypesInteractor.call(
+      result = klass.call(
         date: 12_345,
         name: 'Test',
         tags: %w(a b)

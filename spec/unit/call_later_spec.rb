@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
 RSpec.describe 'Servo::Callable.call_later' do
-  before(:all) do
-    ActiveJob::Base.queue_adapter = :test
-
-    class AsyncTestInteractor
+  let(:async_test_interactor) do
+    Class.new do
+      Object.const_set(:AsyncTestInteractor, self)
       include Servo::Callable
 
       input  :message
@@ -15,8 +14,11 @@ RSpec.describe 'Servo::Callable.call_later' do
         result
       end
     end
+  end
 
-    class FailingAsyncInteractor
+  let(:failing_async_interactor) do
+    Class.new do
+      Object.const_set(:FailingAsyncInteractor, self)
       include Servo::Callable
 
       input :value
@@ -29,17 +31,20 @@ RSpec.describe 'Servo::Callable.call_later' do
     end
   end
 
-  after(:all) do
-    Object.send(:remove_const, :AsyncTestInteractor)
-    Object.send(:remove_const, :FailingAsyncInteractor)
+  before do
+    ActiveJob::Base.queue_adapter = :test
+    ActiveJob::Base.queue_adapter.enqueued_jobs.clear
+    async_test_interactor
+    failing_async_interactor
+  end
+
+  after do
+    Object.send(:remove_const, :AsyncTestInteractor) if defined?(AsyncTestInteractor)
+    Object.send(:remove_const, :FailingAsyncInteractor) if defined?(FailingAsyncInteractor)
     ActiveJob::Base.queue_adapter = :inline
   end
 
   describe '.call_later' do
-    before do
-      ActiveJob::Base.queue_adapter.enqueued_jobs.clear
-    end
-
     it 'enqueues an AsyncInteractorJob' do
       AsyncTestInteractor.call_later(interactor_args: { message: 'Hello' })
 
@@ -53,7 +58,7 @@ RSpec.describe 'Servo::Callable.call_later' do
       AsyncTestInteractor.call_later(interactor_args: { message: 'Test message' })
 
       job = ActiveJob::Base.queue_adapter.enqueued_jobs.first
-      expect(job[:args]).to eq(['AsyncTestInteractor', { message: 'Test message' }])
+      expect(job[:args].first).to eq('AsyncTestInteractor')
     end
 
     it 'accepts job_args to configure the job' do

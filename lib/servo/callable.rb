@@ -12,7 +12,8 @@ module Servo
   # This implementation is based on the interactor gem but adds features to make usage
   # more uniform:
   #
-  # * Define only the `call` method to implement your interactor's unique logic.
+  # * Define the `call` method to implement your interactor's unique logic,
+  #   just like with the standard Interactor gem.
   #
   # * Integrates ActiveModel::Validations to validate any or all of the params
   #   passed to your interactor. If any validations fail, the `call` method
@@ -58,8 +59,8 @@ module Servo
       include ActiveModel::Validations::Callbacks
       include ActiveSupport::Callbacks
       include Callable::ContextRestriction
+      include Callable::CallOverride
       extend Callable::Dsl
-      prepend Callable::CallOverride
 
       define_callbacks :call
 

@@ -2,9 +2,9 @@
 
 RSpec.describe Servo::Callable do
   describe 'input DSL' do
-    before(:all) do
-      # Define named class to avoid anonymous class issues with ActiveModel
-      class InputDslInteractor
+    let(:klass) do
+      Class.new do
+        Object.const_set(FactoryBot.generate(:class_name), self)
         include Servo::Callable
 
         input :name
@@ -16,31 +16,28 @@ RSpec.describe Servo::Callable do
       end
     end
 
-    after(:all) do
-      Object.send(:remove_const, :InputDslInteractor)
-    end
-
     it 'allows accessing declared inputs' do
-      result = InputDslInteractor.call(age: 25, name: 'World')
+      result = klass.call(age: 25, name: 'World')
       expect(result).to be_success
       expect(result.data).to eq('Hello, World!')
     end
 
     it 'validates type constraints when specified' do
-      result = InputDslInteractor.call(age: 'not an integer', name: 'World')
+      result = klass.call(age: 'not an integer', name: 'World')
       expect(result).to be_failure
       expect(result.errors[:age]).to include('must be a Integer')
     end
 
     it 'allows nil values even with type constraints' do
-      result = InputDslInteractor.call(age: nil, name: 'World')
+      result = klass.call(age: nil, name: 'World')
       expect(result).to be_success
     end
   end
 
   describe 'output DSL' do
-    before(:all) do
-      class OutputDslInteractor
+    let(:klass) do
+      Class.new do
+        Object.const_set(FactoryBot.generate(:class_name), self)
         include Servo::Callable
 
         input  :multiplier
@@ -53,20 +50,17 @@ RSpec.describe Servo::Callable do
       end
     end
 
-    after(:all) do
-      Object.send(:remove_const, :OutputDslInteractor)
-    end
-
     it 'allows setting declared outputs' do
-      result = OutputDslInteractor.call(multiplier: 5)
+      result = klass.call(multiplier: 5)
       expect(result).to be_success
       expect(result.computed_value).to eq(50)
     end
   end
 
   describe 'union types' do
-    before(:all) do
-      class UnionTypeInteractor
+    let(:klass) do
+      Class.new do
+        Object.const_set(FactoryBot.generate(:class_name), self)
         include Servo::Callable
 
         input :date_value, type: [String, Date]
@@ -77,30 +71,27 @@ RSpec.describe Servo::Callable do
       end
     end
 
-    after(:all) do
-      Object.send(:remove_const, :UnionTypeInteractor)
-    end
-
     it 'accepts String type' do
-      result = UnionTypeInteractor.call(date_value: '2024-01-01')
+      result = klass.call(date_value: '2024-01-01')
       expect(result).to be_success
     end
 
     it 'accepts Date type' do
-      result = UnionTypeInteractor.call(date_value: Date.today)
+      result = klass.call(date_value: Date.today)
       expect(result).to be_success
     end
 
     it 'rejects other types' do
-      result = UnionTypeInteractor.call(date_value: 12_345)
+      result = klass.call(date_value: 12_345)
       expect(result).to be_failure
       expect(result.errors[:date_value]).to include('must be a String or Date')
     end
   end
 
   describe 'context restriction (default behavior)' do
-    before(:all) do
-      class RestrictedInteractor
+    let(:restricted_klass) do
+      Class.new do
+        Object.const_set(FactoryBot.generate(:class_name), self)
         include Servo::Callable
 
         input  :allowed_input
@@ -111,8 +102,11 @@ RSpec.describe Servo::Callable do
           'done'
         end
       end
+    end
 
-      class UnrestrictedInteractor
+    let(:unrestricted_klass) do
+      Class.new do
+        Object.const_set(FactoryBot.generate(:class_name), self)
         include Servo::Callable
 
         unrestrict_context!
@@ -122,8 +116,11 @@ RSpec.describe Servo::Callable do
           'done'
         end
       end
+    end
 
-      class UndeclaredVarInteractor
+    let(:undeclared_var_klass) do
+      Class.new do
+        Object.const_set(FactoryBot.generate(:class_name), self)
         include Servo::Callable
 
         input :name
@@ -134,35 +131,30 @@ RSpec.describe Servo::Callable do
       end
     end
 
-    after(:all) do
-      Object.send(:remove_const, :RestrictedInteractor)
-      Object.send(:remove_const, :UnrestrictedInteractor)
-      Object.send(:remove_const, :UndeclaredVarInteractor)
-    end
-
     it 'allows setting declared inputs and outputs' do
-      result = RestrictedInteractor.call(allowed_input: 'test')
+      result = restricted_klass.call(allowed_input: 'test')
       expect(result).to be_success
       expect(result.allowed_output).to eq('set')
     end
 
     it 'raises error when setting undeclared context variable' do
-      expect { UndeclaredVarInteractor.call(name: 'test') }.to raise_error(
+      expect { undeclared_var_klass.call(name: 'test') }.to raise_error(
         Servo::UndeclaredContextVariableError,
         /Cannot set 'undeclared_var'/
       )
     end
 
     it 'allows any context variable when unrestricted' do
-      result = UnrestrictedInteractor.call
+      result = unrestricted_klass.call
       expect(result).to be_success
       expect(result.anything).to eq('allowed')
     end
   end
 
   describe 'inheritance' do
-    before(:all) do
-      class ParentInteractor
+    let(:parent_klass) do
+      Class.new do
+        Object.const_set(FactoryBot.generate(:class_name), self)
         include Servo::Callable
 
         input :parent_input
@@ -171,8 +163,12 @@ RSpec.describe Servo::Callable do
           parent_input
         end
       end
+    end
 
-      class ChildInteractor < ParentInteractor
+    let(:child_klass) do
+      Class.new(parent_klass) do
+        Object.const_set(FactoryBot.generate(:class_name), self)
+
         input :child_input
 
         def call
@@ -181,21 +177,17 @@ RSpec.describe Servo::Callable do
       end
     end
 
-    after(:all) do
-      Object.send(:remove_const, :ChildInteractor)
-      Object.send(:remove_const, :ParentInteractor)
-    end
-
     it 'inherits inputs from parent class' do
-      result = ChildInteractor.call(child_input: 'child', parent_input: 'parent')
+      result = child_klass.call(child_input: 'child', parent_input: 'parent')
       expect(result).to be_success
       expect(result.data).to eq('parent + child')
     end
   end
 
   describe 'allowed_context_keys' do
-    before(:all) do
-      class KeysInteractor
+    let(:klass) do
+      Class.new do
+        Object.const_set(FactoryBot.generate(:class_name), self)
         include Servo::Callable
 
         input  :input1
@@ -204,12 +196,8 @@ RSpec.describe Servo::Callable do
       end
     end
 
-    after(:all) do
-      Object.send(:remove_const, :KeysInteractor)
-    end
-
     it 'returns all declared inputs, outputs, and base keys' do
-      keys = KeysInteractor.allowed_context_keys
+      keys = klass.allowed_context_keys
       expect(keys).to include(:input1, :input2, :output1)
       expect(keys).to include(:result, :data, :errors, :error_messages)
     end

@@ -17,5 +17,6 @@ ActiveJob::Base.queue_adapter = :inline
 
 File.expand_path(__dir__).tap do |root_dir|
   Dir[File.join(root_dir, 'config/initializers/**/*.rb')].each { |f| require f }
+  Dir[File.join(root_dir, 'factories', '**', '*.rb')].each { |f| require f }
   Dir[File.join(root_dir, 'support', '**', '*.rb')].each { |f| require f }
 end

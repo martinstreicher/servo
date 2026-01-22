@@ -4,7 +4,7 @@ require 'active_job'
 
 module Servo
   class Foo < Servo::Jobs::ActiveJob
-    def perform
+    def call
       true
     end
   end
