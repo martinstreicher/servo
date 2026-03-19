@@ -184,7 +184,7 @@ GEM
       rack (>= 3.2.0)
       redis-client (>= 0.26.0)
     stringio (3.2.0)
-    test-prof (1.5.2)
+    test-prof (1.6.0)
     tsort (0.2.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
