@@ -64,8 +64,11 @@ module Servo
 
       define_callbacks :call
 
+      before_validation :apply_input_defaults!
+
       class_attribute :_allowed_inputs, default: Set.new
       class_attribute :_allowed_outputs, default: Set.new
+      class_attribute :_input_defaults, default: {}
       class_attribute :_restrict_context, default: true
       class_attribute :_type_constraints, default: {}
     end
@@ -80,6 +83,18 @@ module Servo
 
     def respond_to_missing?(method_name, _include_private = false)
       super || context.respond_to?(method_name)
+    end
+
+    private
+
+    def apply_input_defaults!
+      self.class._input_defaults.each do |name, default|
+        next if context.to_h.key?(name)
+
+        value = default.respond_to?(:call) ? default.call : default
+
+        context.public_send("#{name}=", value)
+      end
     end
   end
 end

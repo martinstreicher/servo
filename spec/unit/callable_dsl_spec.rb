@@ -34,6 +34,94 @@ RSpec.describe Servo::Callable do
     end
   end
 
+  describe 'input defaults' do
+    let(:klass) do
+      Class.new do
+        Object.const_set(FactoryBot.generate(:class_name), self)
+        include Servo::Callable
+
+        input :ids,     default: -> { [] }
+        input :manager, default: 'boss'
+        input :role,    default: 'guest'
+
+        def call
+          self.result = { ids: ids, manager: manager, role: role }
+        end
+      end
+    end
+
+    it 'applies the default when no value is supplied', :aggregate_failures do
+      result = klass.call
+      expect(result).to be_success
+      expect(result.role).to eq('guest')
+      expect(result.manager).to eq('boss')
+    end
+
+    it 'uses the supplied value over the default' do
+      result = klass.call(role: 'admin')
+      expect(result).to be_success
+      expect(result.role).to eq('admin')
+    end
+
+    it 'preserves an explicitly supplied nil rather than defaulting' do
+      result = klass.call(manager: nil)
+      expect(result).to be_success
+      expect(result.manager).to be_nil
+    end
+
+    it 'invokes callable defaults fresh for each call' do
+      first = klass.call
+      first.ids << 'mutated'
+
+      second = klass.call
+
+      expect(first.ids).to eq(%w(mutated))
+      expect(second.ids).to eq([])
+    end
+
+    context 'when the default is nil' do
+      let(:nil_default_klass) do
+        Class.new do
+          Object.const_set(FactoryBot.generate(:class_name), self)
+          include Servo::Callable
+
+          input :name, default: nil
+
+          def call
+            self.result = name
+          end
+        end
+      end
+
+      it 'records nil as the default value' do
+        result = nil_default_klass.call
+        expect(result).to be_success
+        expect(result.data).to be_nil
+      end
+    end
+
+    context 'when a defaulted value violates a type constraint' do
+      let(:typed_klass) do
+        Class.new do
+          Object.const_set(FactoryBot.generate(:class_name), self)
+          include Servo::Callable
+
+          input :count, default: 'not an integer', type: Integer
+
+          def call
+            count
+          end
+        end
+      end
+
+      it 'still enforces the type constraint on the default' do
+        result = typed_klass.call
+        expect(result).to be_failure
+        expect(result.errors[:count]).to include('must be a Integer')
+      end
+    end
+  end
+
   describe 'output DSL' do
     let(:klass) do
       Class.new do

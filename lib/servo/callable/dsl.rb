@@ -11,6 +11,12 @@ module Servo
     # 2. Arrays of classes (union types): `type: [String, Date]`
     # 3. dry-types objects: `type: Types::Array.of(Types::String)`
     #
+    # Inputs may also declare a `default:`, used when no value is supplied for
+    # that key. A default may be a literal value or a callable (invoked once
+    # per call), which is the safe way to default to a mutable or computed
+    # value. Defaults are applied before validations run, so a defaulted value
+    # is still subject to any `type:` or other constraints.
+    #
     # Example:
     #
     #   class MyInteractor
@@ -26,18 +32,29 @@ module Servo
     #     input :tags, type: Types::Array.of(Types::String)
     #     input :config, type: Types::Hash.schema(host: Types::String, port: Types::Integer)
     #
+    #     # Defaults (literal and callable)
+    #     input :role,    default: 'guest'
+    #     input :manager, default: nil
+    #     input :ids,     default: -> { [] }
+    #
     #     output :greeting
     #   end
     #
     module Dsl
       BASE_CONTEXT_KEYS = %i(data error_messages errors result).freeze
 
+      # A unique, private marker meaning "no default was supplied". A real
+      # default of `nil` is recorded; an omitted default is not.
+      NO_DEFAULT = Object.new.freeze
+      private_constant :NO_DEFAULT
+
       def allowed_context_keys
         _allowed_inputs + _allowed_outputs + BASE_CONTEXT_KEYS
       end
 
-      def input(name, type: nil)
+      def input(name, default: NO_DEFAULT, type: nil)
         self._allowed_inputs = _allowed_inputs.dup.add(name)
+        self._input_defaults = _input_defaults.merge(name => default) unless default.equal?(NO_DEFAULT)
         add_type_constraint(name, type) if type
         define_context_accessor(name)
       end

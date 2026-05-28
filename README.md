@@ -10,7 +10,8 @@ ActiveModel record.
 - **Context Restrictions** - The `input` and `output` DSL declare what context
   variables are readable and writeable, respectively. Each variable definition can optionally
   mandate a type to further protect against unexpected side effects in the context.
-  Types can be code Ruby classes, union types, or *dry-types*.
+  Types can be code Ruby classes, union types, or *dry-types*. An `input` can also
+  declare a `default:` value used when none is supplied.
 
 - **ActiveModel Validations** - All ActiveModel validation features, callbacks,
   and errors are built-in to the interactor life cycle. If a context is invalid, the service
@@ -227,6 +228,53 @@ Supported dry-types features:
 - Hash schemas: `Types::Hash.schema(name: Types::String)`
 - Optional types: `Types::String.optional`
 - Coercible types: `Types::Coercible::Integer`
+
+## Default Values
+
+An `input` may declare a `default:`, used when no value is supplied for that
+key:
+
+```ruby
+class CreateUser < Servo::Base
+  input :email
+  input :role, default: 'member'
+
+  def call
+    User.create!(email: email, role: role)
+  end
+end
+
+CreateUser.call(email: 'a@example.com')                 # role => "member"
+CreateUser.call(email: 'a@example.com', role: 'admin')  # role => "admin"
+```
+
+A default may be a literal value or a callable. Use a callable (a lambda or
+proc) when the default is mutable or computed, so each invocation receives its
+own value rather than sharing one object across calls:
+
+```ruby
+class BuildReport < Servo::Base
+  input :ids,         default: -> { [] }
+  input :generated_at, default: -> { Time.current }
+end
+```
+
+Defaults are applied before validations run, so a defaulted value is still
+subject to any `type:` or other constraints. An explicitly supplied `nil` is
+preserved rather than replaced by the default, and `default: nil` is a valid
+way to default a value to `nil`:
+
+```ruby
+class Notify < Servo::Base
+  input :channel, type: String, default: 'email'
+  input :cc,                    default: nil
+
+  validates :channel, presence: true
+end
+
+Notify.call             # channel => "email", cc => nil
+Notify.call(cc: nil)    # cc => nil (the supplied value, not the default)
+```
 
 ## Validations
 
