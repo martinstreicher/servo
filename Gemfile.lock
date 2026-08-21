@@ -89,7 +89,7 @@ GEM
     prettyprint (0.2.0)
     prism (1.9.0)
     racc (1.8.1)
-    rack (3.2.6)
+    rack (3.2.7)
     rainbow (3.1.1)
     rake (13.4.2)
     rbs (4.1.2)
@@ -171,7 +171,7 @@ GEM
       activesupport
       lint_roller (>= 1.1)
       rubocop (>= 1.72.1)
-    sidekiq (8.1.6)
+    sidekiq (8.1.7)
       connection_pool (>= 3.0.0)
       json (>= 2.16.0)
       logger (>= 1.7.0)
